@@ -27,6 +27,10 @@
             @click="$colorMode.preference = 'dark'" />
           <UButton icon="i-heroicons-sun" color="neutral" variant="ghost" class="hidden dark:flex hover:bg-gray-800/50"
             @click="$colorMode.preference = 'light'" />
+
+          <!-- GitHub -->
+          <UButton to="https://github.com/yuethink/imgkit" target="_blank" icon="i-simple-icons-github" color="neutral"
+            variant="ghost" />
         </div>
       </div>
     </header>
@@ -40,7 +44,7 @@
           <div class="text-center mb-10 space-y-4">
             <div class="inline-flex items-center justify-center p-2 rounded-full bg-emerald-500/10 mb-2">
               <span class="text-emerald-500 text-xs font-medium px-2">{{ $t('app.features.simple_efficient_safe')
-              }}</span>
+                }}</span>
             </div>
             <h2
               class="text-4xl sm:text-5xl font-extrabold tracking-tight bg-linear-to-r from-emerald-500 via-blue-500 to-violet-500 bg-clip-text text-transparent pb-1">
@@ -98,7 +102,7 @@
                   <div class="flex items-center gap-2">
                     <UIcon name="i-heroicons-document" class="w-4 h-4" />
                     <span>{{ $t('editor.original_file_size') }}: <strong>{{ formatSize(selectedFile?.size || 0)
-                    }}</strong></span>
+                        }}</strong></span>
                   </div>
                 </div>
               </template>

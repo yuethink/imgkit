@@ -25,6 +25,17 @@
 
 ---
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="public/page1.webp" alt="ImgKit - Upload" width="600">
+</p>
+
+<p align="center">
+  <img src="public/page2.webp" alt="ImgKit - Editor" width="600">
+</p>
+
+
 ## ✨ Features
 
 - **🖼️ Image Cropping** - Precise cropping with preset aspect ratios (16:9, 4:3, 1:1, etc.)
@@ -39,7 +50,7 @@
 | Technology | Purpose |
 |------------|---------|
 | [Nuxt 4](https://nuxt.com) | Vue framework for SSR/SSG |
-| [Nuxt UI v3](https://ui.nuxt.com) | UI component library |
+| [Nuxt UI v4](https://ui.nuxt.com) | UI component library |
 | [Sharp](https://sharp.pixelplumbing.com) | High-performance image processing |
 | [vue-advanced-cropper](https://advanced-cropper.github.io/vue-advanced-cropper/) | Image cropping component |
 | [Vercel](https://vercel.com) | Deployment platform |
@@ -81,7 +92,7 @@ pnpm build
 
 ## 📝 License
 
-[MIT](LICENSE) © Yuwei
+[MIT](LICENSE) © Yuethink
 
 ---
 
