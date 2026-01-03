@@ -24,6 +24,11 @@
           </h1>
         </div>
         <div class="flex items-center gap-2">
+          <!-- Language Switcher -->
+          <UDropdown :items="langItems" :popper="{ placement: 'bottom-end' }">
+            <UButton color="neutral" variant="ghost" icon="i-heroicons-language" />
+          </UDropdown>
+
           <UButton icon="i-heroicons-moon" color="neutral" variant="ghost" class="dark:hidden hover:bg-gray-100/50"
             @click="$colorMode.preference = 'dark'" />
           <UButton icon="i-heroicons-sun" color="neutral" variant="ghost" class="hidden dark:flex hover:bg-gray-800/50"
@@ -40,14 +45,15 @@
         <div v-if="!selectedFile" class="max-w-2xl mx-auto py-10">
           <div class="text-center mb-10 space-y-4">
             <div class="inline-flex items-center justify-center p-2 rounded-full bg-emerald-500/10 mb-2">
-              <span class="text-emerald-500 text-xs font-medium px-2">✨ 简单、高效、安全</span>
+              <span class="text-emerald-500 text-xs font-medium px-2">{{ $t('app.features.simple_efficient_safe')
+              }}</span>
             </div>
             <h2
               class="text-4xl sm:text-5xl font-extrabold tracking-tight bg-linear-to-r from-emerald-500 via-blue-500 to-violet-500 bg-clip-text text-transparent pb-1">
-              智能图片处理工具箱
+              {{ $t('app.title') }}
             </h2>
             <p class="text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
-              一站式图片裁剪、压缩和格式转换。云端智能引擎驱动，提供专业级的压缩质量。
+              {{ $t('app.description') }}
             </p>
           </div>
           <UCard class="card-glass border-0 ring-1 ring-gray-200/50 dark:ring-gray-700/50">
@@ -62,15 +68,15 @@
             <UCard class="card-glass border-0 ring-1 ring-gray-200/50 dark:ring-gray-700/50 overflow-hidden">
               <template #header>
                 <div class="flex items-center justify-between">
-                  <h3 class="font-semibold text-lg">编辑预览</h3>
+                  <h3 class="font-semibold text-lg">{{ $t('editor.preview_title') }}</h3>
                   <div class="flex gap-2">
                     <UButton v-if="cropper" color="neutral" variant="soft" size="xs" icon="i-heroicons-arrow-uturn-left"
                       @click="resetCropper">
-                      恢复原图
+                      {{ $t('editor.reset_original') }}
                     </UButton>
                     <UButton v-if="selectedFile" color="neutral" variant="soft" size="xs" icon="i-heroicons-x-mark"
                       @click="clearFile">
-                      重新上传
+                      {{ $t('editor.reupload') }}
                     </UButton>
                   </div>
                 </div>
@@ -93,11 +99,12 @@
                 <div class="text-sm text-gray-500 dark:text-gray-400 flex justify-between items-center">
                   <div class="flex items-center gap-2">
                     <UIcon name="i-heroicons-photo" class="w-4 h-4" />
-                    <span>原始尺寸: <strong>{{ originalDimensions }}</strong></span>
+                    <span>{{ $t('editor.original_size') }}: <strong>{{ originalDimensions }}</strong></span>
                   </div>
                   <div class="flex items-center gap-2">
                     <UIcon name="i-heroicons-document" class="w-4 h-4" />
-                    <span>原始大小: <strong>{{ formatSize(selectedFile?.size || 0) }}</strong></span>
+                    <span>{{ $t('editor.original_file_size') }}: <strong>{{ formatSize(selectedFile?.size || 0)
+                    }}</strong></span>
                   </div>
                 </div>
               </template>
@@ -131,12 +138,14 @@
 </template>
 
 <script setup lang="ts">
+const { t, locale, setLocale } = useI18n()
+
 // SEO Meta configuration
 useSeoMeta({
-  title: 'Image Kit - 在线智能图片处理工具',
-  ogTitle: 'Image Kit - 在线智能图片处理工具',
-  description: '免费在线图片裁剪、压缩和格式转换工具。支持 WebP、AVIF、JPEG、PNG 等多种格式互转，智能压缩不失真。',
-  ogDescription: '免费在线图片裁剪、压缩和格式转换工具。支持 WebP、AVIF、JPEG、PNG 等多种格式互转，智能压缩不失真。',
+  title: t('meta.title'),
+  ogTitle: t('meta.title'),
+  description: t('meta.description'),
+  ogDescription: t('meta.description'),
   ogImage: 'https://imgkit.yuethink.com/og-image.jpg',
   twitterCard: 'summary_large_image',
 })
@@ -144,7 +153,20 @@ useSeoMeta({
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 
-const originalDimensions = ref('计算中...')
+// Language Switcher Items
+const langItems = computed(() => [
+  [{
+    label: '简体中文',
+    icon: 'i-flag-cn-4x3',
+    click: () => setLocale('zh')
+  }, {
+    label: 'English',
+    icon: 'i-flag-us-4x3',
+    click: () => setLocale('en')
+  }]
+])
+
+const originalDimensions = ref(t('editor.calculating'))
 
 // Create preview URL when file changes
 watch(selectedFile, (file) => {
@@ -262,7 +284,7 @@ const handleDownload = async () => {
     })
 
     // 4. Download
-    const url = window.URL.createObjectURL(response as Blob)
+    const url = window.URL.createObjectURL(response as unknown as Blob)
     const link = document.createElement('a')
     link.href = url
     // 文件名带真实尺寸

@@ -1,0 +1,66 @@
+{
+    "app": {
+        "title": "智能图片处理工具箱",
+        "description": "一站式图片裁剪、压缩和格式转换。云端智能引擎驱动，提供专业级的压缩质量。",
+        "features": {
+            "simple_efficient_safe": "✨ 简单、高效、安全"
+        }
+    },
+    "editor": {
+        "preview_title": "编辑预览",
+        "reset_original": "恢复原图",
+        "reupload": "重新上传",
+        "original_size": "原始尺寸",
+        "original_file_size": "原始大小",
+        "calculating": "计算中..."
+    },
+    "uploader": {
+        "click_drag_upload": "点击或拖拽上传图片",
+        "supported_formats": "支持 JPG, PNG, WebP, AVIF 格式",
+        "max_size": "最大 20MB",
+        "file_selected": "已选择图片，点击更换"
+    },
+    "settings": {
+        "ratio_size_title": "比例 & 尺寸",
+        "width": "宽度",
+        "height": "高度",
+        "output_title": "输出设置",
+        "format": "格式",
+        "quality": "质量",
+        "filename": "文件名",
+        "download_btn": "处理并下载",
+        "scenes": {
+            "video": "视频",
+            "screen": "屏幕",
+            "camera": "相机",
+            "square": "方形",
+            "poster": "海报",
+            "mobile": "手机",
+            "ultrawide": "超宽",
+            "wechat_mp": "公众号"
+        },
+        "presets": {
+            "fhd": "全高清",
+            "hd": "高清",
+            "web": "网页",
+            "standard": "标准",
+            "large_image": "大图",
+            "medium_image": "中图",
+            "large": "大",
+            "medium": "中",
+            "card": "卡片",
+            "fullscreen": "全屏",
+            "story": "故事",
+            "cover": "封面"
+        }
+    },
+    "quality": {
+        "low": "小",
+        "recommended": "推荐",
+        "high": "高清"
+    },
+    "meta": {
+        "title": "Image Kit - 在线智能图片处理工具",
+        "description": "免费在线图片裁剪、压缩和格式转换工具。支持 WebP、AVIF、JPEG、PNG 等多种格式互转，智能压缩不失真。"
+    }
+}

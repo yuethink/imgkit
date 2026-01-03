@@ -1,0 +1,66 @@
+{
+    "app": {
+        "title": "Smart Image Toolkit",
+        "description": "One-stop image cropping, compression, and format conversion. Powered by cloud intelligent engine, providing professional-grade compression quality.",
+        "features": {
+            "simple_efficient_safe": "✨ Simple, Efficient, Safe"
+        }
+    },
+    "editor": {
+        "preview_title": "Editor Preview",
+        "reset_original": "Reset Original",
+        "reupload": "Re-upload",
+        "original_size": "Original Dimensions",
+        "original_file_size": "Original Size",
+        "calculating": "Calculating..."
+    },
+    "uploader": {
+        "click_drag_upload": "Click or Drag to Upload Image",
+        "supported_formats": "Supports JPG, PNG, WebP, AVIF",
+        "max_size": "Max 20MB",
+        "file_selected": "Image Selected, Click to Change"
+    },
+    "settings": {
+        "ratio_size_title": "Ratio & Size",
+        "width": "Width",
+        "height": "Height",
+        "output_title": "Output Settings",
+        "format": "Format",
+        "quality": "Quality",
+        "filename": "Filename",
+        "download_btn": "Process & Download",
+        "scenes": {
+            "video": "Video",
+            "screen": "Screen",
+            "camera": "Camera",
+            "square": "Square",
+            "poster": "Poster",
+            "mobile": "Mobile",
+            "ultrawide": "Ultrawide",
+            "wechat_mp": "WeChat MP"
+        },
+        "presets": {
+            "fhd": "FHD",
+            "hd": "HD",
+            "web": "Web",
+            "standard": "Standard",
+            "large_image": "Large",
+            "medium_image": "Medium",
+            "large": "Large",
+            "medium": "Medium",
+            "card": "Card",
+            "fullscreen": "Fullscreen",
+            "story": "Story",
+            "cover": "Cover"
+        }
+    },
+    "quality": {
+        "low": "Low",
+        "recommended": "Rec.",
+        "high": "High"
+    },
+    "meta": {
+        "title": "Image Kit - Smart Online Image Tool",
+        "description": "Free online image cropping, compression, and format conversion tool. Supports WebP, AVIF, JPEG, PNG, with intelligent lossless compression."
+    }
+}

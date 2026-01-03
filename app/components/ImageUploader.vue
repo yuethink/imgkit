@@ -24,22 +24,22 @@
 
       <div v-if="!modelValue" class="space-y-2">
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-          点击或拖拽上传图片
+          {{ $t('uploader.click_drag_upload') }}
         </h3>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          支持 JPG, PNG, WebP, AVIF 格式
+          {{ $t('uploader.supported_formats') }}
         </p>
         <div class="flex items-center justify-center gap-2 mt-3">
           <span
             class="px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300">
-            最大 20MB
+            {{ $t('uploader.max_size') }}
           </span>
         </div>
       </div>
 
       <div v-else class="flex items-center gap-2 text-emerald-500 font-medium">
         <UIcon name="i-heroicons-check-circle" class="w-5 h-5" />
-        <span>已选择图片，点击更换</span>
+        <span>{{ $t('uploader.file_selected') }}</span>
       </div>
     </div>
   </div>

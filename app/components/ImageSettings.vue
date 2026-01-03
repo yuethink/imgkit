@@ -5,7 +5,7 @@
       <template #header>
         <div class="flex items-center gap-2">
           <UIcon name="i-heroicons-rectangle-group" class="w-4 h-4 text-emerald-500" />
-          <h3 class="font-semibold text-sm">比例 & 尺寸</h3>
+          <h3 class="font-semibold text-sm">{{ $t('settings.ratio_size_title') }}</h3>
         </div>
       </template>
 
@@ -30,10 +30,10 @@
 
       <!-- 尺寸输入 -->
       <div class="grid grid-cols-2 gap-2">
-        <UFormField label="宽度">
+        <UFormField :label="$t('settings.width')">
           <UInput type="number" size="sm" :model-value="localWidth" @update:model-value="updateWidth" />
         </UFormField>
-        <UFormField label="高度">
+        <UFormField :label="$t('settings.height')">
           <UInput type="number" size="sm" :model-value="localHeight" @update:model-value="updateHeight" />
         </UFormField>
       </div>
@@ -44,17 +44,17 @@
       <template #header>
         <div class="flex items-center gap-2">
           <UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 text-violet-500" />
-          <h3 class="font-semibold text-sm">输出设置</h3>
+          <h3 class="font-semibold text-sm">{{ $t('settings.output_title') }}</h3>
         </div>
       </template>
 
       <div class="space-y-3">
         <!-- 格式 + 质量 一行 -->
         <div class="grid grid-cols-2 gap-3">
-          <UFormField label="格式">
+          <UFormField :label="$t('settings.format')">
             <USelect v-model="localFormat" :items="formatOptions" size="sm" />
           </UFormField>
-          <UFormField label="质量">
+          <UFormField :label="$t('settings.quality')">
             <div class="flex gap-1">
               <UButton v-for="q in qualityPresets" :key="q.value"
                 :color="localQuality === q.value ? 'primary' : 'neutral'"
@@ -67,7 +67,7 @@
         </div>
 
         <!-- 文件名 -->
-        <UFormField label="文件名">
+        <UFormField :label="$t('settings.filename')">
           <UInput v-model="localFilename" size="sm" :placeholder="defaultFilename">
             <template #trailing>
               <span class="text-gray-400 text-xs">.{{ localFormat }}</span>
@@ -80,7 +80,7 @@
           class="bg-linear-to-r! from-emerald-500! to-blue-500! hover:from-emerald-600! hover:to-blue-600!"
           @click="handleDownload">
           <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 mr-1" />
-          处理并下载
+          {{ $t('settings.download_btn') }}
         </UButton>
       </div>
     </UCard>
@@ -115,57 +115,59 @@ const emit = defineEmits<{
   'download': []
 }>()
 
+const { t } = useI18n()
+
 // 比例预设 - 精简版
-const ratioPresets: RatioPreset[] = [
+const ratioPresets = computed<RatioPreset[]>(() => [
   {
-    ratio: '16:9', scene: '视频', value: 16 / 9, sizes: [
-      { label: '全高清', width: 1920, height: 1080 },
-      { label: '高清', width: 1280, height: 720 },
-      { label: '网页', width: 800, height: 450 },
+    ratio: '16:9', scene: t('settings.scenes.video'), value: 16 / 9, sizes: [
+      { label: t('settings.presets.fhd'), width: 1920, height: 1080 },
+      { label: t('settings.presets.hd'), width: 1280, height: 720 },
+      { label: t('settings.presets.web'), width: 800, height: 450 },
     ]
   },
   {
-    ratio: '4:3', scene: '屏幕', value: 4 / 3, sizes: [
-      { label: '标准', width: 1024, height: 768 },
-      { label: '网页', width: 800, height: 600 },
+    ratio: '4:3', scene: t('settings.scenes.screen'), value: 4 / 3, sizes: [
+      { label: t('settings.presets.standard'), width: 1024, height: 768 },
+      { label: t('settings.presets.web'), width: 800, height: 600 },
     ]
   },
   {
-    ratio: '3:2', scene: '相机', value: 3 / 2, sizes: [
-      { label: '大图', width: 1200, height: 800 },
-      { label: '中图', width: 900, height: 600 },
+    ratio: '3:2', scene: t('settings.scenes.camera'), value: 3 / 2, sizes: [
+      { label: t('settings.presets.large_image'), width: 1200, height: 800 },
+      { label: t('settings.presets.medium_image'), width: 900, height: 600 },
     ]
   },
   {
-    ratio: '1:1', scene: '方形', value: 1, sizes: [
-      { label: '大', width: 1080, height: 1080 },
-      { label: '中', width: 800, height: 800 },
+    ratio: '1:1', scene: t('settings.scenes.square'), value: 1, sizes: [
+      { label: t('settings.presets.large'), width: 1080, height: 1080 },
+      { label: t('settings.presets.medium'), width: 800, height: 800 },
     ]
   },
   {
-    ratio: '2:3', scene: '海报', value: 2 / 3, sizes: [
-      { label: '海报', width: 800, height: 1200 },
-      { label: '卡片', width: 600, height: 900 },
+    ratio: '2:3', scene: t('settings.scenes.poster'), value: 2 / 3, sizes: [
+      { label: t('settings.presets.poster'), width: 800, height: 1200 },
+      { label: t('settings.presets.card'), width: 600, height: 900 },
     ]
   },
   {
-    ratio: '9:16', scene: '手机', value: 9 / 16, sizes: [
-      { label: '全屏', width: 1080, height: 1920 },
-      { label: '故事', width: 720, height: 1280 },
+    ratio: '9:16', scene: t('settings.scenes.mobile'), value: 9 / 16, sizes: [
+      { label: t('settings.presets.fullscreen'), width: 1080, height: 1920 },
+      { label: t('settings.presets.story'), width: 720, height: 1280 },
     ]
   },
   {
-    ratio: '21:9', scene: '超宽', value: 21 / 9, sizes: [
-      { label: '超宽', width: 2560, height: 1080 },
+    ratio: '21:9', scene: t('settings.scenes.ultrawide'), value: 21 / 9, sizes: [
+      { label: t('settings.presets.ultrawide'), width: 2560, height: 1080 },
     ]
   },
   {
-    ratio: '公众号', scene: '封面', value: 900 / 383, sizes: [
-      { label: '标准', width: 900, height: 383 },
-      { label: '高清', width: 1080, height: 460 },
+    ratio: t('settings.scenes.wechat_mp'), scene: t('settings.presets.cover'), value: 900 / 383, sizes: [
+      { label: t('settings.presets.standard'), width: 900, height: 383 },
+      { label: t('settings.presets.hd'), width: 1080, height: 460 },
     ]
   },
-]
+])
 
 const formatOptions = [
   { label: 'WebP', value: 'webp' },
@@ -174,11 +176,11 @@ const formatOptions = [
   { label: 'PNG', value: 'png' }
 ]
 
-const qualityPresets = [
-  { label: '小', value: 60 },
-  { label: '推荐', value: 80 },
-  { label: '高清', value: 95 },
-]
+const qualityPresets = computed(() => [
+  { label: t('quality.low'), value: 60 },
+  { label: t('quality.recommended'), value: 80 },
+  { label: t('quality.high'), value: 95 },
+])
 
 // 本地状态
 const selectedRatio = ref<RatioPreset | null>(null)
@@ -197,7 +199,7 @@ const selectRatio = (ratio: RatioPreset) => {
   selectedRatio.value = ratio
   isCustomRatio.value = false
   emit('ratio-change', ratio.value)
-  if (ratio.sizes.length > 0) {
+  if (ratio.sizes.length > 0 && ratio.sizes[0]) {
     selectSize(ratio.sizes[0])
   }
 }
