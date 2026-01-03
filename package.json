@@ -1,7 +1,26 @@
 {
-  "name": "img-kit",
+  "name": "imgkit",
+  "version": "1.0.0",
+  "description": "A smart online image processing toolkit - crop, compress, and convert images with ease. Built with Nuxt 4 and Sharp.",
   "type": "module",
-  "private": true,
+  "private": false,
+  "license": "MIT",
+  "author": "yuethink",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuethink/imgkit"
+  },
+  "keywords": [
+    "image",
+    "crop",
+    "compress",
+    "convert",
+    "webp",
+    "avif",
+    "nuxt",
+    "vue",
+    "sharp"
+  ],
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
