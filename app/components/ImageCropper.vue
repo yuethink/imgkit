@@ -1,21 +1,81 @@
 <template>
-  <div class="relative w-full h-full bg-neutral-900 rounded-lg overflow-hidden">
-    <ClientOnly>
-      <Cropper ref="cropperRef" class="w-full h-full" :src="src" :auto-zoom="true" :stencil-size="stencilSize"
-        :stencil-props="{
-          handlers: {},
-          movable: false,
-          resizable: false,
-          aspectRatio: computedAspectRatio
-        }" :resize-image="{
-          adjustStencil: false
-        }" image-restriction="stencil" @change="onChange" @ready="onReady" />
-      <template #fallback>
-        <div class="flex items-center justify-center h-full text-neutral-400">
-          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin" />
-        </div>
-      </template>
-    </ClientOnly>
+  <div class="relative w-full h-full flex flex-col">
+    <!-- Cropper 区域 -->
+    <div class="flex-1 bg-neutral-900 rounded-lg overflow-hidden">
+      <ClientOnly>
+        <Cropper ref="cropperRef" class="w-full h-full" :src="src" :auto-zoom="true" :stencil-size="stencilSize"
+          :stencil-props="{
+            handlers: {},
+            movable: false,
+            resizable: false,
+            aspectRatio: computedAspectRatio
+          }" :resize-image="{
+            adjustStencil: false,
+            wheel: {
+              ratio: 0.05
+            }
+          }" image-restriction="stencil" @change="onChange" @ready="onReady" />
+        <template #fallback>
+          <div class="flex items-center justify-center h-full text-neutral-400">
+            <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin" />
+          </div>
+        </template>
+      </ClientOnly>
+    </div>
+
+    <!-- 缩放控制条 -->
+    <div class="flex items-center justify-center gap-3 py-3 bg-neutral-900/50 rounded-b-lg">
+      <UButton
+        icon="i-heroicons-minus"
+        size="sm"
+        color="neutral"
+        variant="soft"
+        :disabled="sliderValue <= 0.5"
+        @click="zoomOut"
+      />
+      <div class="relative w-32 flex items-center">
+        <input
+          type="range"
+          v-model.number="sliderValue"
+          min="0.5"
+          max="3"
+          step="0.05"
+          class="w-full h-1.5 bg-neutral-700 rounded-full appearance-none cursor-pointer
+                 [&::-webkit-slider-thumb]:appearance-none
+                 [&::-webkit-slider-thumb]:w-4
+                 [&::-webkit-slider-thumb]:h-4
+                 [&::-webkit-slider-thumb]:rounded-full
+                 [&::-webkit-slider-thumb]:bg-emerald-500
+                 [&::-webkit-slider-thumb]:cursor-pointer
+                 [&::-moz-range-thumb]:w-4
+                 [&::-moz-range-thumb]:h-4
+                 [&::-moz-range-thumb]:rounded-full
+                 [&::-moz-range-thumb]:bg-emerald-500
+                 [&::-moz-range-thumb]:border-0
+                 [&::-moz-range-thumb]:cursor-pointer"
+          @input="onSliderInput"
+          @change="onSliderChange"
+        />
+      </div>
+      <UButton
+        icon="i-heroicons-plus"
+        size="sm"
+        color="neutral"
+        variant="soft"
+        :disabled="sliderValue >= 3"
+        @click="zoomIn"
+      />
+      <span class="text-sm text-neutral-400 w-12 text-center tabular-nums">
+        {{ Math.round(sliderValue * 100) }}%
+      </span>
+      <UButton
+        icon="i-heroicons-arrow-path"
+        size="xs"
+        color="neutral"
+        variant="ghost"
+        @click="resetZoom"
+      />
+    </div>
   </div>
 </template>
 
@@ -69,6 +129,17 @@ const stencilSize = computed(() => {
 })
 
 const onReady = () => {
+  // 记录初始可视区域用于计算缩放比例
+  nextTick(() => {
+    const cropper = cropperRef.value
+    if (cropper) {
+      const result = cropper.getResult()
+      if (result.visibleArea) {
+        initialVisibleAreaWidth.value = result.visibleArea.width
+      }
+    }
+  })
+
   emit('ready', {
     // 获取裁剪结果
     getCroppedCanvas: async (options?: { width?: number; height?: number }) => {
@@ -136,7 +207,7 @@ const onReady = () => {
   })
 }
 
-const onChange = ({ coordinates }: any) => {
+const onChange = ({ coordinates, visibleArea }: any) => {
   if (coordinates) {
     emit('crop', {
       width: coordinates.width,
@@ -144,6 +215,96 @@ const onChange = ({ coordinates }: any) => {
       x: coordinates.left,
       y: coordinates.top
     })
+  }
+
+  // 根据 visibleArea 计算并同步当前缩放级别（仅在非滑块拖动时）
+  if (visibleArea && initialVisibleAreaWidth.value > 0 && !isDraggingSlider.value) {
+    const currentZoom = initialVisibleAreaWidth.value / visibleArea.width
+    const clampedZoom = Math.max(0.5, Math.min(3, currentZoom))
+    const roundedZoom = Math.round(clampedZoom * 20) / 20 // 保留到 0.05
+    
+    if (Math.abs(sliderValue.value - roundedZoom) > 0.02) {
+      sliderValue.value = roundedZoom
+    }
+  }
+}
+
+// ===== 缩放控制逻辑 =====
+const initialVisibleAreaWidth = ref(0)
+const sliderValue = ref(1) // 滑块显示值（独立于实际缩放）
+const isDraggingSlider = ref(false) // 是否正在拖动滑块
+let zoomThrottleTimer: ReturnType<typeof setTimeout> | null = null
+
+// 放大 10%
+const zoomIn = () => {
+  const targetLevel = Math.min(sliderValue.value + 0.1, 3)
+  sliderValue.value = Math.round(targetLevel * 10) / 10
+  applyZoomToLevel(sliderValue.value)
+}
+
+// 缩小 10%
+const zoomOut = () => {
+  const targetLevel = Math.max(sliderValue.value - 0.1, 0.5)
+  sliderValue.value = Math.round(targetLevel * 10) / 10
+  applyZoomToLevel(sliderValue.value)
+}
+
+// 重置缩放
+const resetZoom = () => {
+  const cropper = cropperRef.value
+  if (cropper) {
+    cropper.reset()
+    sliderValue.value = 1
+    nextTick(() => {
+      const result = cropper.getResult()
+      if (result.visibleArea) {
+        initialVisibleAreaWidth.value = result.visibleArea.width
+      }
+    })
+  }
+}
+
+// 滑块拖动中（节流应用缩放）
+const onSliderInput = () => {
+  isDraggingSlider.value = true
+  
+  // 节流：每 50ms 最多执行一次缩放
+  if (!zoomThrottleTimer) {
+    zoomThrottleTimer = setTimeout(() => {
+      applyZoomToLevel(sliderValue.value)
+      zoomThrottleTimer = null
+    }, 50)
+  }
+}
+
+// 滑块拖动结束
+const onSliderChange = () => {
+  // 清除节流定时器，立即执行最终缩放
+  if (zoomThrottleTimer) {
+    clearTimeout(zoomThrottleTimer)
+    zoomThrottleTimer = null
+  }
+  applyZoomToLevel(sliderValue.value)
+  
+  // 延迟解除拖动标记，让 onChange 有机会同步
+  setTimeout(() => {
+    isDraggingSlider.value = false
+  }, 100)
+}
+
+// 将缩放应用到指定级别
+const applyZoomToLevel = (targetLevel: number) => {
+  const cropper = cropperRef.value
+  if (!cropper || initialVisibleAreaWidth.value <= 0) return
+
+  const result = cropper.getResult()
+  if (!result.visibleArea) return
+
+  const currentZoom = initialVisibleAreaWidth.value / result.visibleArea.width
+  const factor = targetLevel / currentZoom
+
+  if (Math.abs(factor - 1) > 0.01) {
+    cropper.zoom(factor)
   }
 }
 </script>
