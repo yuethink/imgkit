@@ -1,0 +1,114 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* 全局样式优化 */
+:root {
+    --accent-gradient: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
+}
+
+/* 选中文本颜色 */
+::selection {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+/* 深色模式背景渐变 */
+.dark body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    background-attachment: fixed;
+}
+
+/* 卡片玻璃态效果 */
+.card-glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.dark .card-glass {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮悬停动画 */
+button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* 渐变文字 */
+.gradient-text {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* 装饰性背景 Blob */
+.bg-blob {
+    position: absolute;
+    filter: blur(80px);
+    z-index: 0;
+    opacity: 0.4;
+    animation: blob-bounce 10s infinite ease-in-out;
+}
+
+@keyframes blob-bounce {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+/* 入场动画 */
+.animate-enter {
+    animation: enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes enter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 上传区域动画边框 */
+@keyframes border-dance {
+
+    0%,
+    100% {
+        border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    50% {
+        border-color: rgba(59, 130, 246, 0.5);
+    }
+}
+
+.upload-zone:hover {
+    animation: border-dance 2s ease-in-out infinite;
+    box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15);
+}
+
+/* 平滑过渡 */
+* {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+}
