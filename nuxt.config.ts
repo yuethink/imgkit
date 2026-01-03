@@ -10,8 +10,6 @@ export default defineNuxtConfig({
       { code: 'zh', iso: 'zh-CN', name: '简体中文', file: 'zh.json' },
       { code: 'en', iso: 'en-US', name: 'English', file: 'en.json' }
     ],
-    lazy: true,
-    langDir: 'locales',
     defaultLocale: 'zh',
     strategy: 'prefix_except_default', // 默认语言无前缀，其他语言有前缀 (/en)
     detectBrowserLanguage: {

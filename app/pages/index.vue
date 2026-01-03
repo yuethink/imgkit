@@ -14,20 +14,14 @@
       class="sticky top-0 z-50 border-b border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl supports-[backdrop-filter]:bg-white/50">
       <div class="container mx-auto px-4 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div
-            class="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-400 to-blue-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <UIcon name="i-heroicons-photo" class="w-5 h-5 text-white" />
-          </div>
-          <h1
-            class="text-xl font-bold bg-linear-to-r from-emerald-500 via-blue-500 to-violet-500 bg-clip-text text-transparent">
-            Image Kit
-          </h1>
+          <img src="/logo.svg" alt="ImgKit" class="h-8" />
         </div>
         <div class="flex items-center gap-2">
           <!-- Language Switcher -->
-          <UDropdown :items="langItems" :popper="{ placement: 'bottom-end' }">
-            <UButton color="neutral" variant="ghost" icon="i-heroicons-language" />
-          </UDropdown>
+          <UDropdownMenu :items="langItems">
+            <UButton color="neutral" variant="ghost" icon="i-heroicons-language"
+              :label="locale === 'zh' ? '中' : 'EN'" />
+          </UDropdownMenu>
 
           <UButton icon="i-heroicons-moon" color="neutral" variant="ghost" class="dark:hidden hover:bg-gray-100/50"
             @click="$colorMode.preference = 'dark'" />
@@ -128,9 +122,9 @@
           © {{ new Date().getFullYear() }}
           <a href="https://www.yuethink.com" target="_blank" rel="noopener"
             class="text-emerald-500 hover:text-emerald-600 transition-colors">
-            贵州越想互联科技有限公司
+            {{ $t('footer.company') }}
           </a>
-          · 保留所有权利
+          · {{ $t('footer.rights') }}
         </p>
       </div>
     </footer>
@@ -154,17 +148,17 @@ const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 
 // Language Switcher Items
-const langItems = computed(() => [
+const langItems = [
   [{
     label: '简体中文',
-    icon: 'i-flag-cn-4x3',
-    click: () => setLocale('zh')
+    icon: 'i-heroicons-globe-asia-australia',
+    onSelect: () => setLocale('zh')
   }, {
     label: 'English',
-    icon: 'i-flag-us-4x3',
-    click: () => setLocale('en')
+    icon: 'i-heroicons-globe-americas',
+    onSelect: () => setLocale('en')
   }]
-])
+]
 
 const originalDimensions = ref(t('editor.calculating'))
 

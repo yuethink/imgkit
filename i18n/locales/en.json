@@ -37,7 +37,7 @@
             "poster": "Poster",
             "mobile": "Mobile",
             "ultrawide": "Ultrawide",
-            "wechat_mp": "WeChat MP"
+            "wechat_mp": "wechat"
         },
         "presets": {
             "fhd": "FHD",
@@ -60,7 +60,11 @@
         "high": "High"
     },
     "meta": {
-        "title": "Image Kit - Smart Online Image Tool",
+        "title": "ImgKit - Smart Online Image Tool",
         "description": "Free online image cropping, compression, and format conversion tool. Supports WebP, AVIF, JPEG, PNG, with intelligent lossless compression."
+    },
+    "footer": {
+        "company": "Guizhou Yuethink Technology Co., Ltd.",
+        "rights": "All Rights Reserved"
     }
 }

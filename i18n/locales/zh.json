@@ -60,7 +60,11 @@
         "high": "高清"
     },
     "meta": {
-        "title": "Image Kit - 在线智能图片处理工具",
+        "title": "ImgKit - 在线智能图片处理工具",
         "description": "免费在线图片裁剪、压缩和格式转换工具。支持 WebP、AVIF、JPEG、PNG 等多种格式互转，智能压缩不失真。"
+    },
+    "footer": {
+        "company": "贵州越想互联科技有限公司",
+        "rights": "保留所有权利"
     }
 }

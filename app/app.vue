@@ -7,6 +7,8 @@ import { Analytics } from '@vercel/analytics/nuxt'
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <Analytics />
+    <ClientOnly>
+      <Analytics />
+    </ClientOnly>
   </UApp>
 </template>
