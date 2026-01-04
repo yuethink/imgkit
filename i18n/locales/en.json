@@ -12,7 +12,8 @@
         "reupload": "Re-upload",
         "original_size": "Original Dimensions",
         "original_file_size": "Original Size",
-        "calculating": "Calculating..."
+        "calculating": "Calculating...",
+        "error_processing": "Processing failed, please try again"
     },
     "uploader": {
         "click_drag_upload": "Click or Drag to Upload Image",
@@ -23,12 +24,17 @@
     "settings": {
         "ratio_size_title": "Ratio & Size",
         "width": "Width",
+        "width_short": "W",
         "height": "Height",
+        "height_short": "H",
         "output_title": "Output Settings",
         "format": "Format",
         "quality": "Quality",
         "filename": "Filename",
         "download_btn": "Process & Download",
+        "custom_ratio": "Custom",
+        "free_ratio": "Free",
+        "apply": "Apply",
         "scenes": {
             "video": "Video",
             "screen": "Screen",

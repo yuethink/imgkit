@@ -307,6 +307,31 @@ const applyZoomToLevel = (targetLevel: number) => {
     cropper.zoom(factor)
   }
 }
+
+// 监听 stencilWidth/stencilHeight 变化，刷新 cropper
+watch(
+  () => [props.stencilWidth, props.stencilHeight, props.aspectRatio],
+  () => {
+    const cropper = cropperRef.value
+    if (cropper) {
+      // 重置缩放状态
+      sliderValue.value = 1
+      
+      // 延迟刷新 cropper，确保 stencilSize 已更新
+      nextTick(() => {
+        cropper.refresh()
+        // 再次延迟重置和记录初始状态
+        nextTick(() => {
+          cropper.reset()
+          const result = cropper.getResult()
+          if (result.visibleArea) {
+            initialVisibleAreaWidth.value = result.visibleArea.width
+          }
+        })
+      })
+    }
+  }
+)
 </script>
 
 <style>

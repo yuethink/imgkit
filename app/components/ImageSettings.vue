@@ -11,11 +11,58 @@
 
       <!-- 比例选择 - 更紧凑的4列布局 -->
       <div class="grid grid-cols-4 gap-1.5 mb-3">
+        <!-- 自由比例 -->
+        <UButton
+          :color="isFreeRatio ? 'primary' : 'neutral'"
+          :variant="isFreeRatio ? 'solid' : 'soft'"
+          size="xs"
+          class="justify-center text-xs"
+          @click="selectFreeRatio"
+        >
+          {{ $t('settings.free_ratio') }}
+        </UButton>
+        <!-- 预设比例 -->
         <UButton v-for="ratio in ratioPresets" :key="ratio.ratio"
           :color="selectedRatio?.ratio === ratio.ratio ? 'primary' : 'neutral'"
           :variant="selectedRatio?.ratio === ratio.ratio ? 'solid' : 'soft'" size="xs" class="justify-center text-xs"
           @click="selectRatio(ratio)">
           {{ ratio.ratio }}
+        </UButton>
+        <!-- 自定义比例按钮 -->
+        <UButton
+          :color="isCustomRatioMode ? 'primary' : 'neutral'"
+          :variant="isCustomRatioMode ? 'solid' : 'soft'"
+          size="xs"
+          class="justify-center text-xs"
+          @click="toggleCustomRatioMode"
+        >
+          {{ $t('settings.custom_ratio') }}
+        </UButton>
+      </div>
+
+      <!-- 自定义比例输入 -->
+      <div v-if="isCustomRatioMode" class="flex items-center gap-2 mb-3">
+        <UInput
+          v-model.number="customRatioWidth"
+          type="number"
+          size="xs"
+          :placeholder="$t('settings.width_short')"
+          class="w-16 text-center"
+          min="1"
+          max="100"
+        />
+        <span class="text-gray-400">:</span>
+        <UInput
+          v-model.number="customRatioHeight"
+          type="number"
+          size="xs"
+          :placeholder="$t('settings.height_short')"
+          class="w-16 text-center"
+          min="1"
+          max="100"
+        />
+        <UButton size="xs" color="primary" @click="applyCustomRatio">
+          {{ $t('settings.apply') }}
         </UButton>
       </div>
 
@@ -158,7 +205,7 @@ const ratioPresets = computed<RatioPreset[]>(() => [
   },
   {
     ratio: '21:9', scene: t('settings.scenes.ultrawide'), value: 21 / 9, sizes: [
-      { label: t('settings.presets.ultrawide'), width: 2560, height: 1080 },
+      { label: t('settings.scenes.ultrawide'), width: 2560, height: 1080 },
     ]
   },
   {
@@ -185,6 +232,10 @@ const qualityPresets = computed(() => [
 // 本地状态
 const selectedRatio = ref<RatioPreset | null>(null)
 const isCustomRatio = ref(false)
+const isFreeRatio = ref(true) // 默认自由比例
+const isCustomRatioMode = ref(false) // 自定义比例输入模式
+const customRatioWidth = ref(16)
+const customRatioHeight = ref(9)
 const localWidth = ref(props.modelValue.width || 800)
 const localHeight = ref(props.modelValue.height || 450)
 const localFormat = ref(props.modelValue.format)
@@ -195,8 +246,41 @@ const localFilename = ref('')
 const defaultFilename = computed(() => `image_${localWidth.value}x${localHeight.value}`)
 
 // 方法
+// 选择自由比例（无锁定）
+const selectFreeRatio = () => {
+  isFreeRatio.value = true
+  selectedRatio.value = null
+  isCustomRatioMode.value = false
+  isCustomRatio.value = false
+  emit('ratio-change', undefined)
+  emit('size-change')
+}
+
+// 切换自定义比例输入模式
+const toggleCustomRatioMode = () => {
+  isCustomRatioMode.value = !isCustomRatioMode.value
+  if (isCustomRatioMode.value) {
+    isFreeRatio.value = false
+    selectedRatio.value = null
+  }
+}
+
+// 应用自定义比例
+const applyCustomRatio = () => {
+  if (customRatioWidth.value > 0 && customRatioHeight.value > 0) {
+    const ratio = customRatioWidth.value / customRatioHeight.value
+    isFreeRatio.value = false
+    selectedRatio.value = null
+    isCustomRatio.value = true
+    emit('ratio-change', ratio)
+    emit('size-change')
+  }
+}
+
 const selectRatio = (ratio: RatioPreset) => {
   selectedRatio.value = ratio
+  isFreeRatio.value = false
+  isCustomRatioMode.value = false
   isCustomRatio.value = false
   emit('ratio-change', ratio.value)
   if (ratio.sizes.length > 0 && ratio.sizes[0]) {
@@ -221,6 +305,10 @@ const updateWidth = (val: string | number) => {
     localWidth.value = num
     isCustomRatio.value = true
     selectedRatio.value = null
+    isFreeRatio.value = true // 手动输入时切换到自由比例
+    isCustomRatioMode.value = false
+    // 清除锁定的 aspectRatio，让 cropper 使用新的宽高比
+    emit('ratio-change', undefined)
     syncToParent()
     emit('size-change')
   }
@@ -232,6 +320,10 @@ const updateHeight = (val: string | number) => {
     localHeight.value = num
     isCustomRatio.value = true
     selectedRatio.value = null
+    isFreeRatio.value = true // 手动输入时切换到自由比例
+    isCustomRatioMode.value = false
+    // 清除锁定的 aspectRatio，让 cropper 使用新的宽高比
+    emit('ratio-change', undefined)
     syncToParent()
     emit('size-change')
   }

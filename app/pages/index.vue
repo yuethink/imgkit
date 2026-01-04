@@ -295,7 +295,7 @@ const handleDownload = async () => {
 
   } catch (error) {
     console.error(error)
-    alert('处理失败，请重试')
+    alert(t('editor.error_processing'))
   } finally {
     processing.value = false
   }

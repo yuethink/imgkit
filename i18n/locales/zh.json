@@ -12,7 +12,8 @@
         "reupload": "重新上传",
         "original_size": "原始尺寸",
         "original_file_size": "原始大小",
-        "calculating": "计算中..."
+        "calculating": "计算中...",
+        "error_processing": "处理失败，请重试"
     },
     "uploader": {
         "click_drag_upload": "点击或拖拽上传图片",
@@ -23,12 +24,17 @@
     "settings": {
         "ratio_size_title": "比例 & 尺寸",
         "width": "宽度",
+        "width_short": "宽",
         "height": "高度",
+        "height_short": "高",
         "output_title": "输出设置",
         "format": "格式",
         "quality": "质量",
         "filename": "文件名",
         "download_btn": "处理并下载",
+        "custom_ratio": "自定义",
+        "free_ratio": "自由",
+        "apply": "应用",
         "scenes": {
             "video": "视频",
             "screen": "屏幕",
