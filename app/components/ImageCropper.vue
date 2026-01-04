@@ -30,14 +30,14 @@
         size="sm"
         color="neutral"
         variant="soft"
-        :disabled="sliderValue <= 0.5"
+        :disabled="sliderValue <= 0.1"
         @click="zoomOut"
       />
       <div class="relative w-32 flex items-center">
         <input
           type="range"
           v-model.number="sliderValue"
-          min="0.5"
+          min="0.1"
           max="3"
           step="0.05"
           class="w-full h-1.5 bg-neutral-700 rounded-full appearance-none cursor-pointer
@@ -220,7 +220,7 @@ const onChange = ({ coordinates, visibleArea }: any) => {
   // 根据 visibleArea 计算并同步当前缩放级别（仅在非滑块拖动时）
   if (visibleArea && initialVisibleAreaWidth.value > 0 && !isDraggingSlider.value) {
     const currentZoom = initialVisibleAreaWidth.value / visibleArea.width
-    const clampedZoom = Math.max(0.5, Math.min(3, currentZoom))
+    const clampedZoom = Math.max(0.1, Math.min(3, currentZoom))
     const roundedZoom = Math.round(clampedZoom * 20) / 20 // 保留到 0.05
     
     if (Math.abs(sliderValue.value - roundedZoom) > 0.02) {
@@ -235,18 +235,40 @@ const sliderValue = ref(1) // 滑块显示值（独立于实际缩放）
 const isDraggingSlider = ref(false) // 是否正在拖动滑块
 let zoomThrottleTimer: ReturnType<typeof setTimeout> | null = null
 
+// 获取当前实际缩放比例
+const getCurrentZoom = () => {
+  const cropper = cropperRef.value
+  if (cropper && initialVisibleAreaWidth.value > 0) {
+    const result = cropper.getResult()
+    if (result.visibleArea) {
+      return initialVisibleAreaWidth.value / result.visibleArea.width
+    }
+  }
+  return sliderValue.value
+}
+
 // 放大 10%
 const zoomIn = () => {
-  const targetLevel = Math.min(sliderValue.value + 0.1, 3)
-  sliderValue.value = Math.round(targetLevel * 10) / 10
-  applyZoomToLevel(sliderValue.value)
+  // 基于当前实际缩放值计算，防止滑块滞后导致的跳变
+  const currentZoom = getCurrentZoom()
+  // 向上取整到最近的 0.1 节点 (例如 0.12 -> 0.2)
+  const nextStep = Math.ceil((currentZoom + 0.01) * 10) / 10
+  const targetLevel = Math.min(Math.max(nextStep, 0.1), 3)
+  
+  sliderValue.value = targetLevel
+  applyZoomToLevel(targetLevel)
 }
 
 // 缩小 10%
 const zoomOut = () => {
-  const targetLevel = Math.max(sliderValue.value - 0.1, 0.5)
-  sliderValue.value = Math.round(targetLevel * 10) / 10
-  applyZoomToLevel(sliderValue.value)
+  // 基于当前实际缩放值计算
+  const currentZoom = getCurrentZoom()
+  // 向下取整到最近的 0.1 节点 (例如 0.18 -> 0.1)
+  const nextStep = Math.floor((currentZoom - 0.01) * 10) / 10
+  const targetLevel = Math.max(nextStep, 0.1)
+  
+  sliderValue.value = targetLevel
+  applyZoomToLevel(targetLevel)
 }
 
 // 重置缩放

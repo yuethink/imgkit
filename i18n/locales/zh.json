@@ -33,7 +33,7 @@
         "filename": "文件名",
         "download_btn": "处理并下载",
         "custom_ratio": "自定义",
-        "free_ratio": "自由",
+        "free_ratio": "默认",
         "apply": "应用",
         "scenes": {
             "video": "视频",

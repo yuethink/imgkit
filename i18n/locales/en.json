@@ -33,7 +33,7 @@
         "filename": "Filename",
         "download_btn": "Process & Download",
         "custom_ratio": "Custom",
-        "free_ratio": "Free",
+        "free_ratio": "Default",
         "apply": "Apply",
         "scenes": {
             "video": "Video",
