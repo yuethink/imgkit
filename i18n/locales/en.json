@@ -16,7 +16,7 @@
         "error_processing": "Processing failed, please try again"
     },
     "uploader": {
-        "click_drag_upload": "Click or Drag to Upload Image",
+        "click_drag_upload": "Click, Drag or Ctrl+V to Paste Image",
         "supported_formats": "Supports JPG, PNG, WebP, AVIF",
         "max_size": "Max 20MB",
         "file_selected": "Image Selected, Click to Change"

@@ -16,7 +16,7 @@
         "error_processing": "处理失败，请重试"
     },
     "uploader": {
-        "click_drag_upload": "点击或拖拽上传图片",
+        "click_drag_upload": "点击、拖拽或 Ctrl+V 粘贴图片",
         "supported_formats": "支持 JPG, PNG, WebP, AVIF 格式",
         "max_size": "最大 20MB",
         "file_selected": "已选择图片，点击更换"
