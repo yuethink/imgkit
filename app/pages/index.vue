@@ -306,14 +306,10 @@ const handleSaveAs = async () => {
     return
   }
 
-  processing.value = true
   try {
-    const blob = await getProcessedBlob()
-    if (!blob) throw new Error('Canvas is empty')
-
     const { name, ext } = getDownloadFilename()
     
-    // Show save picker
+    // 1. Show save picker immediately (requires user gesture)
     const handle = await (window as any).showSaveFilePicker({
       suggestedName: `${name}.${ext}`,
       types: [{
@@ -322,7 +318,12 @@ const handleSaveAs = async () => {
       }]
     })
 
-    // Write file
+    // 2. Start processing only after user has selected a destination
+    processing.value = true
+    const blob = await getProcessedBlob()
+    if (!blob) throw new Error('Canvas is empty')
+
+    // 3. Write file
     const writable = await handle.createWritable()
     await writable.write(blob)
     await writable.close()
