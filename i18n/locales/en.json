@@ -32,6 +32,8 @@
         "quality": "Quality",
         "filename": "Filename",
         "download_btn": "Process & Download",
+        "save_as_btn": "Save As...",
+        "save_success": "Saved successfully",
         "custom_ratio": "Custom",
         "free_ratio": "Default",
         "apply": "Apply",

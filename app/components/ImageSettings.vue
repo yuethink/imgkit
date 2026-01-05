@@ -122,13 +122,24 @@
           </UInput>
         </UFormField>
 
-        <!-- 下载按钮 -->
-        <UButton block size="md" color="primary" :loading="loading"
-          class="bg-linear-to-r! from-emerald-500! to-blue-500! hover:from-emerald-600! hover:to-blue-600!"
-          @click="handleDownload">
-          <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 mr-1" />
-          {{ $t('settings.download_btn') }}
-        </UButton>
+        <!-- 按钮组 (垂直布局) -->
+        <div class="flex flex-col gap-2">
+          <!-- 下载按钮 (主操作) -->
+          <UButton block size="md" color="primary" :loading="loading"
+            class="bg-linear-to-r! from-emerald-500! to-blue-500! hover:from-emerald-600! hover:to-blue-600! font-bold"
+            @click="handleDownload">
+            <UIcon name="i-heroicons-arrow-down-tray" class="w-5 h-5 mr-1" />
+            <span class="text-base">{{ $t('settings.download_btn') }}</span>
+          </UButton>
+
+          <!-- 另存为按钮 (次操作) -->
+          <UButton block size="md" color="gray" variant="solid" :ui="{ rounded: 'rounded-md' }" :loading="loading"
+            class="justify-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+            @click="handleSaveAs">
+            <UIcon name="i-heroicons-folder-open" class="w-4 h-4 mr-1 text-gray-500" />
+            {{ $t('settings.save_as_btn') }}
+          </UButton>
+        </div>
       </div>
     </UCard>
   </div>
@@ -160,6 +171,7 @@ const emit = defineEmits<{
   'ratio-change': [ratio: number | undefined]
   'size-change': []
   'download': []
+  'save-as': []
 }>()
 
 const { t } = useI18n()
@@ -338,6 +350,12 @@ const syncToParent = () => {
     quality: localQuality.value,
     filename: localFilename.value || defaultFilename.value
   })
+}
+
+// 另存为
+const handleSaveAs = () => {
+  syncToParent()
+  emit('save-as')
 }
 
 const handleDownload = () => {

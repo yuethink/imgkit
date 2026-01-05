@@ -32,6 +32,8 @@
         "quality": "质量",
         "filename": "文件名",
         "download_btn": "处理并下载",
+        "save_as_btn": "另存为...",
+        "save_success": "保存成功",
         "custom_ratio": "自定义",
         "free_ratio": "默认",
         "apply": "应用",

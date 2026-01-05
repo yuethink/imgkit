@@ -112,7 +112,7 @@
           <!-- Right: Settings (Sticky) -->
           <div class="lg:sticky lg:top-24 space-y-4">
             <ImageSettings v-model="settings" :loading="processing" @ratio-change="onRatioChange"
-              @size-change="onSizeChange" @download="handleDownload" />
+              @size-change="onSizeChange" @download="handleDownload" @save-as="handleSaveAs" />
           </div>
         </div>
 
@@ -276,22 +276,91 @@ const handleDownload = async () => {
 
   processing.value = true
   try {
-    // 获取裁剪后的 canvas
+    const blob = await getProcessedBlob()
+    if (!blob) throw new Error('Canvas is empty')
+    
+    // Download
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    const { name, ext } = getDownloadFilename()
+    link.download = `${name}.${ext}`
+    link.click()
+    window.URL.revokeObjectURL(url)
 
+  } catch (error) {
+    console.error(error)
+    alert(t('editor.error_processing'))
+  } finally {
+    processing.value = false
+  }
+}
+
+const handleSaveAs = async () => {
+  if (!selectedFile.value || !cropper.value) return
+
+  // Check support
+  if (!('showSaveFilePicker' in window)) {
+    // Fallback to normal download
+    handleDownload()
+    return
+  }
+
+  processing.value = true
+  try {
+    const blob = await getProcessedBlob()
+    if (!blob) throw new Error('Canvas is empty')
+
+    const { name, ext } = getDownloadFilename()
+    
+    // Show save picker
+    const handle = await (window as any).showSaveFilePicker({
+      suggestedName: `${name}.${ext}`,
+      types: [{
+        description: 'Image',
+        accept: { [`image/${ext === 'jpg' ? 'jpeg' : ext}`]: [`.${ext}`] }
+      }]
+    })
+
+    // Write file
+    const writable = await handle.createWritable()
+    await writable.write(blob)
+    await writable.close()
+
+    // Show success toast or message (optional)
+    alert(t('settings.save_success'))
+
+  } catch (error) {
+    // Ignore abort error
+    if ((error as any).name !== 'AbortError') {
+      console.error(error)
+      alert(t('editor.error_processing'))
+    }
+  } finally {
+    processing.value = false
+  }
+}
+
+const getDownloadFilename = () => {
+  const ext = settings.value.format
+  const defaultName = `image_${settings.value.width}x${settings.value.height}`
+  const name = settings.value.filename || defaultName
+  return { name, ext }
+}
+
+const getProcessedBlob = async () => {
     // 1. Get cropped canvas
-    // v2 wrapper returns a promise for getCroppedCanvas
     const canvas = await cropper.value.getCroppedCanvas({
       width: settings.value.width,
       height: settings.value.height
-      // Note: passing width/height here resizes the output
     })
 
-    // 使用 JPEG 格式发送给服务端，减少传输量
+    // 2. Convert to blob (use JPEG for transport)
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob(resolve, 'image/jpeg', 0.95)
     })
 
-    if (!blob) throw new Error('Canvas is empty')
+    if (!blob) return null
 
     // 3. Send to server for optimization
     const formData = new FormData()
@@ -304,25 +373,8 @@ const handleDownload = async () => {
       body: formData,
       responseType: 'blob'
     })
-
-    // 4. Download
-    const url = window.URL.createObjectURL(response as unknown as Blob)
-    const link = document.createElement('a')
-    link.href = url
-    // 文件名带真实尺寸
-    const ext = settings.value.format
-    const defaultName = `image_${settings.value.width}x${settings.value.height}`
-    const name = settings.value.filename || defaultName
-    link.download = `${name}.${ext}`
-    link.click()
-    window.URL.revokeObjectURL(url)
-
-  } catch (error) {
-    console.error(error)
-    alert(t('editor.error_processing'))
-  } finally {
-    processing.value = false
-  }
+    
+    return response as unknown as Blob
 }
 
 const formatSize = (bytes: number) => {
