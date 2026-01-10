@@ -106,9 +106,9 @@ button:active {
     box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15);
 }
 
-/* 平滑过渡 */
+/* 平滑过渡 (移除了 transform 以避免干扰 vue-advanced-cropper) */
 * {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, filter, backdrop-filter;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 200ms;
 }

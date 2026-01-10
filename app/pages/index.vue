@@ -83,8 +83,7 @@
               <div class="h-[450px] rounded-xl overflow-hidden">
                 <ClientOnly>
                   <ImageCropper v-if="previewUrl" ref="cropperRef" :src="previewUrl" :aspect-ratio="cropperAspectRatio"
-                    :stencil-width="settings.width" :stencil-height="settings.height" @ready="onCropperReady"
-                    @crop="onCrop" />
+                    @ready="onCropperReady" @crop="onCrop" />
                   <template #fallback>
                     <div class="flex items-center justify-center h-full text-gray-400">
                       <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin" />
@@ -111,8 +110,10 @@
 
           <!-- Right: Settings (Sticky) -->
           <div class="lg:sticky lg:top-24 space-y-4">
-            <ImageSettings v-model="settings" :loading="processing" @ratio-change="onRatioChange"
-              @size-change="onSizeChange" @download="handleDownload" @save-as="handleSaveAs" />
+            <ImageSettings v-model="settings" :loading="processing" :actual-crop-width="actualCropDimensions.width"
+              :actual-crop-height="actualCropDimensions.height" @ratio-change="onRatioChange"
+              @size-change="onSizeChange" @edit-start="isUserEditing = true" @edit-end="isUserEditing = false"
+              @download="handleDownload" @save-as="handleSaveAs" />
           </div>
         </div>
 
@@ -228,46 +229,76 @@ const settings = ref({
 const processing = ref(false)
 const cropperAspectRatio = ref<number | undefined>(undefined)
 const cropper = ref<any>(null)
-const cropperRef = ref(null)
+
+
 
 const onCropperReady = (instance: any) => {
   cropper.value = instance
-  // Init settings with natural dimensions
-  const data = instance.getData()
+  // 初始化设置为当前裁剪区域尺寸
+  const result = instance.getResult()
+  if (result?.coordinates) {
+    settings.value.width = Math.round(result.coordinates.width)
+    settings.value.height = Math.round(result.coordinates.height)
+    actualCropDimensions.value = { ...settings.value }
+  }
+}
+
+// 实际裁剪区域尺寸（用于显示质量指示器）
+const actualCropDimensions = ref({ width: 0, height: 0 })
+
+// 用户是否正在编辑设置（防止输入时被自动裁剪覆盖）
+const isUserEditing = ref(false)
+
+// 裁剪区域变化 -> 同步到设置面板
+const onCrop = (data: { width: number; height: number }) => {
+  actualCropDimensions.value.width = Math.round(data.width)
+  actualCropDimensions.value.height = Math.round(data.height)
+
+  // 如果用户正在输入，不要覆盖他们的值
+  if (isUserEditing.value) return
+
   settings.value.width = Math.round(data.width)
   settings.value.height = Math.round(data.height)
 }
 
-// Static 模式下 onCrop 不需要同步尺寸（剪切框固定）
-const onCrop = (_data: { width: number; height: number }) => {
-  // 剪切框尺寸由设置决定，不需要同步回来
-}
-
-// 重置裁剪器到初始状态
+// 重置裁剪器
 const resetCropper = () => {
-  if (cropper.value) {
-    cropper.value.reset()
-  }
+  cropper.value?.reset()
 }
 
 const onRatioChange = (ratio: number | undefined) => {
   cropperAspectRatio.value = ratio
-  // 切换比例后重置 cropper
-  nextTick(() => {
-    if (cropper.value) {
-      cropper.value.reset()
-    }
-  })
 }
 
-// 切换尺寸后重置 cropper
+// 用户输入尺寸 -> 应用到裁剪器
 const onSizeChange = () => {
-  nextTick(() => {
-    if (cropper.value) {
-      cropper.value.reset()
-    }
-  })
+  if (!cropper.value) return
+
+  // 获取当前中心点
+  const result = cropper.value.getResult()
+  const coords = result?.coordinates
+  if (!coords) return
+
+  const centerX = coords.left + coords.width / 2
+  const centerY = coords.top + coords.height / 2
+  const imageSize = result.image
+
+  // 使用官方推荐的数组变换：先设尺寸，再调位置
+  cropper.value.setCoordinates([
+    // 步骤1: 设置新尺寸（限制在图片范围内）
+    () => ({
+      width: Math.min(settings.value.width, imageSize?.width || Infinity),
+      height: Math.min(settings.value.height, imageSize?.height || Infinity)
+    }),
+    // 步骤2: 保持居中
+    ({ coordinates }: any) => ({
+      left: centerX - coordinates.width / 2,
+      top: centerY - coordinates.height / 2
+    })
+  ])
 }
+
+
 
 
 
@@ -278,7 +309,7 @@ const handleDownload = async () => {
   try {
     const blob = await getProcessedBlob()
     if (!blob) throw new Error('Canvas is empty')
-    
+
     // Download
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -308,7 +339,7 @@ const handleSaveAs = async () => {
 
   try {
     const { name, ext } = getDownloadFilename()
-    
+
     // 1. Show save picker immediately (requires user gesture)
     const handle = await (window as any).showSaveFilePicker({
       suggestedName: `${name}.${ext}`,
@@ -350,32 +381,32 @@ const getDownloadFilename = () => {
 }
 
 const getProcessedBlob = async () => {
-    // 1. Get cropped canvas
-    const canvas = await cropper.value.getCroppedCanvas({
-      width: settings.value.width,
-      height: settings.value.height
-    })
+  // 1. Get cropped canvas
+  const canvas = await cropper.value.getCroppedCanvas({
+    width: settings.value.width,
+    height: settings.value.height
+  })
 
-    // 2. Convert to blob (use JPEG for transport)
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, 'image/jpeg', 0.95)
-    })
+  // 2. Convert to blob (use JPEG for transport)
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, 'image/png')
+  })
 
-    if (!blob) return null
+  if (!blob) return null
 
-    // 3. Send to server for optimization
-    const formData = new FormData()
-    formData.append('image', blob, selectedFile.value?.name)
-    formData.append('quality', String(settings.value.quality))
-    formData.append('format', settings.value.format)
+  // 3. Send to server for optimization
+  const formData = new FormData()
+  formData.append('image', blob, selectedFile.value?.name)
+  formData.append('quality', String(settings.value.quality))
+  formData.append('format', settings.value.format)
 
-    const response = await $fetch('/api/process', {
-      method: 'POST',
-      body: formData,
-      responseType: 'blob'
-    })
-    
-    return response as unknown as Blob
+  const response = await $fetch('/api/process', {
+    method: 'POST',
+    body: formData,
+    responseType: 'blob'
+  })
+
+  return response as unknown as Blob
 }
 
 const formatSize = (bytes: number) => {

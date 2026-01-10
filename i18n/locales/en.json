@@ -37,6 +37,8 @@
         "custom_ratio": "Custom",
         "free_ratio": "Default",
         "apply": "Apply",
+        "auto_follow": "Auto-follow crop size",
+        "unlock_auto": "Unlock (Reset to Auto)",
         "scenes": {
             "video": "Video",
             "screen": "Screen",
@@ -59,8 +61,14 @@
             "card": "Card",
             "fullscreen": "Fullscreen",
             "story": "Story",
+            "poster": "Poster",
             "cover": "Cover"
-        }
+        },
+        "crop_area": "Crop Area",
+        "quality_original": "Original Quality",
+        "quality_shrink": "Shrink {percent}%, Quality kept",
+        "quality_enlarge_mild": "Enlarge {percent}%, Mild blur risk",
+        "quality_enlarge_heavy": "Enlarge {percent}%, Likely blurry"
     },
     "quality": {
         "low": "Low",

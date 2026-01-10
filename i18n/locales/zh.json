@@ -35,8 +35,10 @@
         "save_as_btn": "另存为...",
         "save_success": "保存成功",
         "custom_ratio": "自定义",
-        "free_ratio": "默认",
+        "free_ratio": "不限",
         "apply": "应用",
+        "auto_follow": "自动跟随裁剪",
+        "unlock_auto": "点击解锁（恢复自动）",
         "scenes": {
             "video": "视频",
             "screen": "屏幕",
@@ -59,8 +61,14 @@
             "card": "卡片",
             "fullscreen": "全屏",
             "story": "故事",
+            "poster": "海报",
             "cover": "封面"
-        }
+        },
+        "crop_area": "选中区域",
+        "quality_original": "原质量输出",
+        "quality_shrink": "缩小 {percent}%，质量保持",
+        "quality_enlarge_mild": "放大 {percent}%，轻微模糊风险",
+        "quality_enlarge_heavy": "放大 {percent}%，可能模糊"
     },
     "quality": {
         "low": "小",
