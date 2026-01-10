@@ -22,8 +22,13 @@
         "file_selected": "已选择图片，点击更换"
     },
     "settings": {
+        "crop_ratio_title": "裁剪比例",
+        "output_size_title": "输出尺寸",
+        "current_selection": "当前选区",
         "ratio_size_title": "比例 & 尺寸",
         "width": "宽度",
+        "output_width": "输出宽度",
+        "output_height": "输出高度",
         "width_short": "宽",
         "height": "高度",
         "height_short": "高",

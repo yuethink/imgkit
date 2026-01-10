@@ -44,7 +44,7 @@
           <div class="text-center mb-10 space-y-4">
             <div class="inline-flex items-center justify-center p-2 rounded-full bg-emerald-500/10 mb-2">
               <span class="text-emerald-500 text-xs font-medium px-2">{{ $t('app.features.simple_efficient_safe')
-                }}</span>
+              }}</span>
             </div>
             <h2
               class="text-4xl sm:text-5xl font-extrabold tracking-tight bg-linear-to-r from-emerald-500 via-blue-500 to-violet-500 bg-clip-text text-transparent pb-1">
@@ -101,7 +101,7 @@
                   <div class="flex items-center gap-2">
                     <UIcon name="i-heroicons-document" class="w-4 h-4" />
                     <span>{{ $t('editor.original_file_size') }}: <strong>{{ formatSize(selectedFile?.size || 0)
-                        }}</strong></span>
+                    }}</strong></span>
                   </div>
                 </div>
               </template>
@@ -111,9 +111,8 @@
           <!-- Right: Settings (Sticky) -->
           <div class="lg:sticky lg:top-24 space-y-4">
             <ImageSettings v-model="settings" :loading="processing" :actual-crop-width="actualCropDimensions.width"
-              :actual-crop-height="actualCropDimensions.height" @ratio-change="onRatioChange"
-              @size-change="onSizeChange" @edit-start="isUserEditing = true" @edit-end="isUserEditing = false"
-              @download="handleDownload" @save-as="handleSaveAs" />
+              :actual-crop-height="actualCropDimensions.height" @ratio-change="onRatioChange" @download="handleDownload"
+              @save-as="handleSaveAs" />
           </div>
         </div>
 
@@ -246,19 +245,16 @@ const onCropperReady = (instance: any) => {
 // 实际裁剪区域尺寸（用于显示质量指示器）
 const actualCropDimensions = ref({ width: 0, height: 0 })
 
-// 用户是否正在编辑设置（防止输入时被自动裁剪覆盖）
-const isUserEditing = ref(false)
-
-// 裁剪区域变化 -> 同步到设置面板
+// 裁剪区域变化 -> 更新选区尺寸显示
 const onCrop = (data: { width: number; height: number }) => {
   actualCropDimensions.value.width = Math.round(data.width)
   actualCropDimensions.value.height = Math.round(data.height)
 
-  // 如果用户正在输入，不要覆盖他们的值
-  if (isUserEditing.value) return
-
-  settings.value.width = Math.round(data.width)
-  settings.value.height = Math.round(data.height)
+  // 自由比例模式下，自动同步输出尺寸（防止变形）
+  if (cropperAspectRatio.value === undefined) {
+    settings.value.width = Math.round(data.width)
+    settings.value.height = Math.round(data.height)
+  }
 }
 
 // 重置裁剪器
@@ -268,34 +264,6 @@ const resetCropper = () => {
 
 const onRatioChange = (ratio: number | undefined) => {
   cropperAspectRatio.value = ratio
-}
-
-// 用户输入尺寸 -> 应用到裁剪器
-const onSizeChange = () => {
-  if (!cropper.value) return
-
-  // 获取当前中心点
-  const result = cropper.value.getResult()
-  const coords = result?.coordinates
-  if (!coords) return
-
-  const centerX = coords.left + coords.width / 2
-  const centerY = coords.top + coords.height / 2
-  const imageSize = result.image
-
-  // 使用官方推荐的数组变换：先设尺寸，再调位置
-  cropper.value.setCoordinates([
-    // 步骤1: 设置新尺寸（限制在图片范围内）
-    () => ({
-      width: Math.min(settings.value.width, imageSize?.width || Infinity),
-      height: Math.min(settings.value.height, imageSize?.height || Infinity)
-    }),
-    // 步骤2: 保持居中
-    ({ coordinates }: any) => ({
-      left: centerX - coordinates.width / 2,
-      top: centerY - coordinates.height / 2
-    })
-  ])
 }
 
 
@@ -381,13 +349,15 @@ const getDownloadFilename = () => {
 }
 
 const getProcessedBlob = async () => {
-  // 1. Get cropped canvas
-  const canvas = await cropper.value.getCroppedCanvas({
+  // 1. Get cropped canvas with target size
+  const canvas = cropper.value.getCanvas({
     width: settings.value.width,
     height: settings.value.height
   })
 
-  // 2. Convert to blob (use JPEG for transport)
+  if (!canvas) throw new Error('Failed to get canvas')
+
+  // 2. Convert to blob (use PNG for transport)
   const blob = await new Promise<Blob | null>((resolve) => {
     canvas.toBlob(resolve, 'image/png')
   })

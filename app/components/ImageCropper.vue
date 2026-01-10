@@ -47,11 +47,60 @@ interface CropperInstance {
   setCoordinates: (coords: any) => void
   getResult: () => any
   reset: () => void
+  getCanvas: (options?: { width?: number; height?: number }) => HTMLCanvasElement | null
 }
 
 const cropperRef = ref<InstanceType<typeof Cropper> | null>(null)
 const zoom = ref(1)
 const baseVisibleWidth = ref(0)
+
+// 高质量缩放函数：使用分步缩放避免大比例缩放产生噪点
+const highQualityResize = (source: HTMLCanvasElement, targetWidth: number, targetHeight: number): HTMLCanvasElement => {
+  // 如果目标尺寸更大或相近，直接缩放
+  if (targetWidth >= source.width * 0.5) {
+    const canvas = document.createElement('canvas')
+    canvas.width = targetWidth
+    canvas.height = targetHeight
+    const ctx = canvas.getContext('2d')!
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(source, 0, 0, targetWidth, targetHeight)
+    return canvas
+  }
+
+  // 分步缩放：每次缩小一半，直到接近目标尺寸
+  let currentCanvas = source
+  let currentWidth = source.width
+  let currentHeight = source.height
+
+  while (currentWidth * 0.5 > targetWidth) {
+    const halfWidth = Math.round(currentWidth * 0.5)
+    const halfHeight = Math.round(currentHeight * 0.5)
+
+    const stepCanvas = document.createElement('canvas')
+    stepCanvas.width = halfWidth
+    stepCanvas.height = halfHeight
+    const ctx = stepCanvas.getContext('2d')!
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(currentCanvas, 0, 0, halfWidth, halfHeight)
+
+    currentCanvas = stepCanvas
+    currentWidth = halfWidth
+    currentHeight = halfHeight
+  }
+
+  // 最后一步缩放到目标尺寸
+  const finalCanvas = document.createElement('canvas')
+  finalCanvas.width = targetWidth
+  finalCanvas.height = targetHeight
+  const ctx = finalCanvas.getContext('2d')!
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight)
+
+  return finalCanvas
+}
 
 // 初始化完成
 const onReady = () => {
@@ -70,6 +119,20 @@ const onReady = () => {
     reset: () => {
       cropperRef.value?.reset()
       zoom.value = 1
+    },
+    getCanvas: (options?: { width?: number; height?: number }) => {
+      const result = cropperRef.value?.getResult()
+      if (!result?.canvas) return null
+
+      const sourceCanvas = result.canvas as HTMLCanvasElement
+
+      // 如果指定了输出尺寸，创建新 canvas 并高质量缩放
+      if (options?.width && options?.height) {
+        // 使用分步缩放算法，避免大比例缩放产生噪点
+        return highQualityResize(sourceCanvas, options.width, options.height)
+      }
+
+      return sourceCanvas
     }
   })
 }

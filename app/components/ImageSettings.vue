@@ -1,15 +1,15 @@
 <template>
   <div class="space-y-3">
-    <!-- 比例 + 尺寸 合并 -->
+    <!-- 裁剪比例区域 -->
     <UCard class="card-glass border-0 ring-1 ring-gray-200/50 dark:ring-gray-700/50" :ui="{ body: 'p-3' }">
       <template #header>
         <div class="flex items-center gap-2">
           <UIcon name="i-heroicons-rectangle-group" class="w-4 h-4 text-emerald-500" />
-          <h3 class="font-semibold text-sm">{{ $t('settings.ratio_size_title') }}</h3>
+          <h3 class="font-semibold text-sm">{{ $t('settings.crop_ratio_title') }}</h3>
         </div>
       </template>
 
-      <!-- 比例选择 - 更紧凑的4列布局 -->
+      <!-- 比例选择按钮 -->
       <div class="grid grid-cols-4 gap-1.5 mb-3">
         <!-- 自由比例 -->
         <UButton :color="isFreeRatio ? 'primary' : 'neutral'" :variant="isFreeRatio ? 'solid' : 'soft'" size="xs"
@@ -42,33 +42,48 @@
         </UButton>
       </div>
 
-      <!-- 预设尺寸 -->
+      <!-- 当前选区显示（只读） -->
+      <div v-if="actualCropWidth && actualCropHeight" class="text-sm text-gray-500 dark:text-gray-400">
+        <span class="inline-flex items-center gap-1.5">
+          <UIcon name="i-heroicons-viewfinder-circle" class="w-4 h-4" />
+          {{ $t('settings.current_selection') }}: <strong class="text-gray-700 dark:text-gray-200">{{ actualCropWidth }}
+            × {{ actualCropHeight }}</strong>
+        </span>
+      </div>
+    </UCard>
+
+    <!-- 输出尺寸区域 -->
+    <UCard class="card-glass border-0 ring-1 ring-gray-200/50 dark:ring-gray-700/50" :ui="{ body: 'p-3' }">
+      <template #header>
+        <div class="flex items-center gap-2">
+          <UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4 text-blue-500" />
+          <h3 class="font-semibold text-sm">{{ $t('settings.output_size_title') }}</h3>
+        </div>
+      </template>
+
+      <!-- 预设尺寸（仅当有选定比例时显示） -->
       <div v-if="selectedRatio" class="flex flex-wrap gap-1.5 mb-3">
         <UButton v-for="size in selectedRatio.sizes" :key="size.label"
           :color="isSelectedSize(size) ? 'primary' : 'neutral'" :variant="isSelectedSize(size) ? 'solid' : 'soft'"
-          size="xs" @click="selectSize(size)">
+          size="xs" @click="selectOutputSize(size)">
           {{ size.label }} {{ size.width }}×{{ size.height }}
         </UButton>
       </div>
 
-      <!-- 尺寸输入 -->
-      <!-- 尺寸输入 -->
+      <!-- 输出尺寸输入 -->
       <div class="grid grid-cols-2 gap-2">
-        <UFormField :label="$t('settings.width')">
+        <UFormField :label="$t('settings.output_width')">
           <UInput type="number" size="sm" :model-value="inputWidth" @update:model-value="handleWidthInput"
             @focus="onInputFocus" @blur="onInputBlur" />
         </UFormField>
-        <UFormField :label="$t('settings.height')">
+        <UFormField :label="$t('settings.output_height')">
           <UInput type="number" size="sm" :model-value="inputHeight" @update:model-value="handleHeightInput"
             @focus="onInputFocus" @blur="onInputBlur" />
         </UFormField>
       </div>
 
       <!-- 质量指示器 -->
-      <div v-if="actualCropWidth && actualCropHeight" class="mt-2 text-xs space-y-1">
-        <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-          <span>{{ $t('settings.crop_area') }}: {{ actualCropWidth }}×{{ actualCropHeight }}</span>
-        </div>
+      <div v-if="actualCropWidth && actualCropHeight" class="mt-3 text-xs space-y-1">
         <div class="flex items-center gap-2">
           <span :class="qualityIndicator.class">
             {{ qualityIndicator.icon }} {{ qualityIndicator.text }}
@@ -77,7 +92,7 @@
       </div>
     </UCard>
 
-    <!-- 输出设置 - 更紧凑 -->
+    <!-- 导出设置 -->
     <UCard class="card-glass border-0 ring-1 ring-gray-200/50 dark:ring-gray-700/50" :ui="{ body: 'p-3' }">
       <template #header>
         <div class="flex items-center gap-2">
@@ -124,7 +139,7 @@
           </UButton>
 
           <!-- 另存为按钮 (次操作) -->
-          <UButton block size="md" color="neutral" variant="outline" :ui="{ rounded: 'rounded-md' }" :loading="loading"
+          <UButton block size="md" color="neutral" variant="outline" :loading="loading"
             class="justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             @click="handleSaveAs">
             <UIcon name="i-heroicons-folder-open" class="w-4 h-4 mr-1" />
@@ -162,9 +177,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: ImageSettings]
   'ratio-change': [ratio: number | undefined]
-  'size-change': []
-  'edit-start': []
-  'edit-end': []
   'download': []
   'save-as': []
 }>()
@@ -243,6 +255,11 @@ const isFreeRatio = ref(true) // 默认自由比例
 const isCustomRatioMode = ref(false) // 自定义比例输入模式
 const customRatioWidth = ref(16)
 const customRatioHeight = ref(9)
+
+// 锁定的比例值（用于输出尺寸联动）
+const lockedRatioValue = ref<number | undefined>(undefined)
+
+// 输出尺寸（独立于选区）
 const localWidth = ref(props.modelValue.width || 800)
 const localHeight = ref(props.modelValue.height || 450)
 const localFormat = ref(props.modelValue.format)
@@ -252,14 +269,12 @@ const localFilename = ref('')
 // 计算属性
 const defaultFilename = computed(() => `image_${localWidth.value}x${localHeight.value}`)
 
-// 实际裁剪尺寸（从 props 获取）
+// 实际裁剪尺寸（从 props 获取，只读）
 const actualCropWidth = computed(() => props.actualCropWidth || 0)
 const actualCropHeight = computed(() => props.actualCropHeight || 0)
 
 // 质量指示器
 const qualityIndicator = computed(() => {
-  const { t } = useI18n()
-
   if (!actualCropWidth.value || !actualCropHeight.value) {
     return { icon: '', text: '', class: '' }
   }
@@ -299,8 +314,8 @@ const selectFreeRatio = () => {
   selectedRatio.value = null
   isCustomRatioMode.value = false
   isCustomRatio.value = false
+  lockedRatioValue.value = undefined
   emit('ratio-change', undefined)
-  emit('size-change')
 }
 
 // 切换自定义比例输入模式
@@ -319,8 +334,11 @@ const applyCustomRatio = () => {
     isFreeRatio.value = false
     selectedRatio.value = null
     isCustomRatio.value = true
+    lockedRatioValue.value = ratio
     emit('ratio-change', ratio)
-    emit('size-change')
+    // 保持当前宽度，按新比例计算高度
+    localHeight.value = Math.round(localWidth.value / ratio)
+    syncToParent()
   }
 }
 
@@ -329,17 +347,21 @@ const selectRatio = (ratio: RatioPreset) => {
   isFreeRatio.value = false
   isCustomRatioMode.value = false
   isCustomRatio.value = false
+  lockedRatioValue.value = ratio.value
   emit('ratio-change', ratio.value)
+  // 选择比例时，默认选择第一个预设尺寸
   if (ratio.sizes.length > 0 && ratio.sizes[0]) {
-    selectSize(ratio.sizes[0])
+    selectOutputSize(ratio.sizes[0])
   }
 }
 
-const selectSize = (size: { width: number; height: number }) => {
+// 选择预设输出尺寸（不影响裁剪框）
+const selectOutputSize = (size: { width: number; height: number }) => {
   localWidth.value = size.width
   localHeight.value = size.height
+  inputWidth.value = size.width
+  inputHeight.value = size.height
   syncToParent()
-  emit('size-change')
 }
 
 const isSelectedSize = (size: { width: number; height: number }) => {
@@ -354,7 +376,6 @@ const inputHeight = ref<string | number>(localHeight.value)
 
 const onInputFocus = () => {
   isInputFocused.value = true
-  emit('edit-start')
 }
 
 const onInputBlur = () => {
@@ -367,16 +388,11 @@ const onInputBlur = () => {
     inputHeight.value = localHeight.value
   }
   syncToParent()
-
-  // 延迟 100ms 再通知父组件编辑结束，防止 onCrop 立即覆盖用户输入
-  setTimeout(() => {
-    emit('edit-end')
-  }, 100)
 }
 
 // 防抖处理
 let updateTimer: NodeJS.Timeout | null = null
-const debounceUpdate = (fn: () => void, delay = 500) => {
+const debounceUpdate = (fn: () => void, delay = 300) => {
   if (updateTimer) clearTimeout(updateTimer)
   updateTimer = setTimeout(fn, delay)
 }
@@ -387,10 +403,18 @@ const handleWidthInput = (val: string | number) => {
   const num = typeof val === 'string' ? parseInt(val) : val
 
   if (!isNaN(num) && num > 0) {
-    // 立即更新本地数值以便逻辑运算（虽然可能尚未同步到父组件）
-    // 注意：不要直接赋值给 localWidth 引发 watcher 循环，逻辑由 updateWidthLogic 处理
     debounceUpdate(() => {
-      updateWidthLogic(num)
+      localWidth.value = num
+
+      // 计算联动比例：优先使用锁定比例，否则使用选区比例
+      const ratio = lockedRatioValue.value || (actualCropWidth.value && actualCropHeight.value ? actualCropWidth.value / actualCropHeight.value : undefined)
+
+      if (ratio) {
+        const newHeight = Math.round(num / ratio)
+        localHeight.value = newHeight
+        inputHeight.value = newHeight
+      }
+      syncToParent()
     }, 200)
   }
 }
@@ -402,43 +426,19 @@ const handleHeightInput = (val: string | number) => {
 
   if (!isNaN(num) && num > 0) {
     debounceUpdate(() => {
-      updateHeightLogic(num)
+      localHeight.value = num
+
+      // 计算联动比例：优先使用锁定比例，否则使用选区比例
+      const ratio = lockedRatioValue.value || (actualCropWidth.value && actualCropHeight.value ? actualCropWidth.value / actualCropHeight.value : undefined)
+
+      if (ratio) {
+        const newWidth = Math.round(num * ratio)
+        localWidth.value = newWidth
+        inputWidth.value = newWidth
+      }
+      syncToParent()
     }, 200)
   }
-}
-
-// 核心更新逻辑：手动输入时自动切换到自由模式
-const updateWidthLogic = (num: number) => {
-  localWidth.value = num
-
-  // 手动输入时，自动切换到自由比例模式（不联动高度）
-  if (selectedRatio.value) {
-    emit('ratio-change', undefined)
-    selectedRatio.value = null
-  }
-  isFreeRatio.value = true
-  isCustomRatio.value = false
-  isCustomRatioMode.value = false
-
-  syncToParent()
-  emit('size-change')
-}
-
-// 核心更新逻辑：手动输入时自动切换到自由模式
-const updateHeightLogic = (num: number) => {
-  localHeight.value = num
-
-  // 手动输入时，自动切换到自由比例模式（不联动宽度）
-  if (selectedRatio.value) {
-    emit('ratio-change', undefined)
-    selectedRatio.value = null
-  }
-  isFreeRatio.value = true
-  isCustomRatio.value = false
-  isCustomRatioMode.value = false
-
-  syncToParent()
-  emit('size-change')
 }
 
 const syncToParent = () => {
@@ -464,7 +464,6 @@ const handleDownload = () => {
 }
 
 // 监听 localWidth/Height 变化以同步 inputWidth/Height (当非聚焦时)
-// 这通常发生在：1. 拖动裁剪框 -> props update -> local update; 2. 选择了预设尺寸
 watch(localWidth, (val) => {
   if (!isInputFocused.value) inputWidth.value = val
 })
@@ -472,7 +471,7 @@ watch(localHeight, (val) => {
   if (!isInputFocused.value) inputHeight.value = val
 })
 
-// 监听 props 变化
+// 监听 props 变化（初始化时同步）
 watch(() => props.modelValue, (val) => {
   if (isInputFocused.value) return
 

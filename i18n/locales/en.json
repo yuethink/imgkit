@@ -22,8 +22,13 @@
         "file_selected": "Image Selected, Click to Change"
     },
     "settings": {
+        "crop_ratio_title": "Crop Ratio",
+        "output_size_title": "Output Size",
+        "current_selection": "Current Selection",
         "ratio_size_title": "Ratio & Size",
         "width": "Width",
+        "output_width": "Output Width",
+        "output_height": "Output Height",
         "width_short": "W",
         "height": "Height",
         "height_short": "H",
